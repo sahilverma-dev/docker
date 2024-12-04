@@ -13,3 +13,6 @@ services:
       - db:/var/lib/postgresql/data
 volumes:
   db:
+
+  # connection string format:
+  # postgresql://user:password@localhost:5432/your_database_name

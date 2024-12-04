@@ -74,8 +74,8 @@ And here's how to connect to a specific database from your applications:
 
 - Connection string format:
 
-```
-postgresql://postgres:postgres_password@localhost:5432/your_database_name
+```txt
+postgresql://user:password@localhost:5432/your_database_name
 ```
 
 For example, if you're using Python with `psycopg2`:
@@ -86,8 +86,8 @@ import psycopg2
 # Connect to a specific database
 conn = psycopg2.connect(
     dbname="your_database_name",
-    user="postgres",
-    password="postgres_password",
+    user="user",
+    password="password",
     host="localhost",
     port="5432"
 )
