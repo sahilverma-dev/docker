@@ -6,10 +6,9 @@ services:
     image: mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: chaiaurcode
-      MYSQL_DATABASE: chaiDB
-      MYSQL_USER: chai
-      MYSQL_PASSWORD: chai
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
     ports:
       - 3306:3306 # make sure you don't have another container running on 3306
     volumes:
