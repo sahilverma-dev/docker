@@ -1,58 +1,65 @@
-# Local PostgreSQL Dev Container
+# Docker Postgres (Shared Local Database Server)
 
-A simple Docker setup providing a reusable local PostgreSQL database + pgAdmin UI for development across projects.
+This repository provides a **single reusable PostgreSQL server** for all your local projects.
+
+You will have ONE server in pgAdmin named:
+
+```bash
+Docker
+```
+
+Inside it you can create unlimited databases:
+
+- finance-platform
+- auth-service
+- analytics
+- test-db
+- anything else
+
+So you never create new containers per project again.
 
 ---
 
 ## Services
 
-- **Postgres 15** – primary database
-- **pgAdmin 4** – browser UI to inspect and manage DB
+| Service     | Purpose        | Port |
+| ----------- | -------------- | ---- |
+| Postgres 15 | Main DB server | 5432 |
+| pgAdmin     | Database UI    | 5050 |
 
-Ports:
+Credentials:
 
-- Postgres → `localhost:5432`
-- pgAdmin → `http://localhost:5050`
-
-Default credentials:
-
-| Item     | Value |
-| -------- | ----- |
-| User     | dev   |
-| Password | dev   |
-| Database | app   |
-
-Connection URL:
-
-```bash
-postgresql://dev:dev@localhost:5432/app
-```
+| Field      | Value    |
+| ---------- | -------- |
+| User       | dev      |
+| Password   | dev      |
+| Default DB | postgres |
 
 ---
 
-## Start Database
+## Start Database Server
 
-```bash
+```base
 docker compose up -d
 ```
 
-Stop (keep data):
+Stop server (keep data):
 
-```bash
+```base
 docker compose down
 ```
 
-Reset / wipe database completely:
+Reset entire database server (delete ALL databases):
 
-```bash
+```base
 docker compose down -v
 ```
 
 ---
 
-## pgAdmin Login
+## Access pgAdmin
 
-Open browser:
+Open:
 
 ```txt
 http://localhost:5050
@@ -67,18 +74,16 @@ Login:
 
 ---
 
-## Add Database Server in pgAdmin
+## Add Server in pgAdmin (IMPORTANT)
 
-Important: Do NOT use localhost
-
-Docker containers communicate using service names.
+Create ONLY ONE server entry.
 
 ### General Tab
 
 Name:
 
-```txt
-Local Postgres
+```base
+Docker
 ```
 
 ### Connection Tab
@@ -87,100 +92,111 @@ Local Postgres
 | -------------- | -------- |
 | Host name      | postgres |
 | Port           | 5432     |
-| Maintenance DB | app      |
+| Maintenance DB | postgres |
 | Username       | dev      |
 | Password       | dev      |
 | Save Password  | ON       |
 
+After saving — this server will contain all your project databases.
+
 ---
 
-## Using From Applications
+## Creating a New Database (Per Project)
 
-Works with:
+Right click:
 
-- Prisma
-- Drizzle
-- Sequelize
-- TypeORM
-- NestJS
-- Next.js
-- Bun
-- Node.js
+```base
+Docker → Databases → Create → Database
+```
 
-Use this environment variable in projects:
+Example:
+
+| Project      | Database Name         |
+| ------------ | --------------------- |
+| Finance App  | finance-platform      |
+| Auth Service | auth                  |
+| SaaS App     | saas                  |
+| Tests        | finance-platform-test |
+
+---
+
+## Connection Strings
+
+From your local apps (Node / Bun / Prisma / Drizzle):
+
+```base
+postgresql://dev:dev@localhost:5432/<database-name>
+```
+
+Example:
 
 ```env
-DATABASE_URL=postgresql://dev:dev@localhost:5432/app
+DATABASE_URL=postgresql://dev:dev@localhost:5432/finance-platform
+```
+
+---
+
+## Using with Drizzle
+
+1. Create database in pgAdmin
+2. Set DATABASE_URL
+3. Run:
+
+```base
+npx drizzle-kit push
+```
+
+```base
+bunx drizzle-kit push
 ```
 
 ---
 
 ## Troubleshooting
 
-### 1) Connection refused
-
-Postgres not ready yet.
-
-Check:
-
-```bash
-docker logs local_postgres
-```
-
-Wait for:
-
-```bash
-database system is ready to accept connections
-```
-
----
-
-### 2) pgAdmin cannot connect using localhost
-
-Inside Docker, `localhost` means the pgAdmin container itself.
+### Cannot connect using localhost inside pgAdmin
 
 Use:
 
-```bash
+```base
 postgres
 ```
 
-NOT `localhost` or `127.0.0.1`
+NOT localhost.
 
 ---
 
-### 3) Password authentication failed
+### database does not exist
 
-Postgres only reads credentials on first startup.
-If credentials changed later, the volume still contains old users.
+Create it manually in pgAdmin first.
 
-Fix:
+---
 
-```bash
+### password authentication failed
+
+Reset server:
+
+```base
 docker compose down -v
 docker compose up -d
 ```
 
 ---
 
-### 4) fe_sendauth: no password supplied
+### fe_sendauth: no password supplied
 
-pgAdmin didn’t store password.
-Edit server → Connection → enable **Save Password**.
+Edit server → enable Save Password.
 
 ---
 
-### 5) Verify DB is reachable from host
+### Check DB ready
 
-```bash
-psql postgresql://dev:dev@localhost:5432/app
+```base
+docker logs local_postgres
 ```
 
----
+Wait for:
 
-## Notes
-
-- Data persists between restarts
-- Safe to reuse across all local projects
-- Delete volume only when you want a fresh DB
-- Designed for local development only (not production)
+```base
+database system is ready to accept connections
+```

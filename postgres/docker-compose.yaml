@@ -1,5 +1,7 @@
 version: "3.9"
 
+name: local-postgres-db
+
 services:
   postgres:
     image: postgres:15
@@ -9,13 +11,28 @@ services:
     environment:
       POSTGRES_USER: dev
       POSTGRES_PASSWORD: dev
-      POSTGRES_DB: app
+      POSTGRES_DB: postgres
+      TZ: UTC
+      PGTZ: UTC
 
     ports:
       - "5432:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/init:/docker-entrypoint-initdb.d # optional auto DB creation
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+    command: >
+      postgres
+      -c log_statement=none
+      -c log_connections=on
+      -c log_disconnections=on
 
   pgadmin:
     image: dpage/pgadmin4
@@ -25,12 +42,14 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: dev@local.com
       PGADMIN_DEFAULT_PASSWORD: dev
+      PGADMIN_CONFIG_SERVER_MODE: "False"
 
     ports:
       - "5050:80"
 
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
     volumes:
       - pgadmin_data:/var/lib/pgadmin
