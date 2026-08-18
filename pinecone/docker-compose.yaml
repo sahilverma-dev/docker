@@ -7,6 +7,8 @@ services:
       PINECONE_HOST: 0.0.0.0
     ports:
       - "5080:5080"
+      - "5081-5090:5081-5090" # <--- Exposes vector index ports 5081 through 5090
+
     volumes:
       - pinecone_data:/data
     restart: unless-stopped
